@@ -112,7 +112,7 @@ int main()
 {
    WSADATA wsaData;
    WSAStartup(MAKEWORD(2, 2), &wsaData);
-   //—оздаем сокет
+
    auto servSock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 
    if (servSock == INVALID_SOCKET)
@@ -123,9 +123,13 @@ int main()
       return SOCKET_ERROR;
    }
 
+   u_short port_number = 0;
+   cout << "Enter port number" << endl;
+   cin >> port_number;
+
    SOCKADDR_IN sin;
    sin.sin_family = AF_INET;
-   sin.sin_port = htons(2009);
+   sin.sin_port = htons(port_number);
    sin.sin_addr.s_addr = INADDR_ANY;
 
    auto responce = bind(servSock, (LPSOCKADDR)&sin, sizeof(sin));
@@ -139,7 +143,7 @@ int main()
 
    char host[UCHAR_MAX];
    char HostName[1024];
-   //получение IP адреса и запись в строку
+
    if (!gethostname(HostName, 1024))
       if (LPHOSTENT lphost = gethostbyname(HostName))
          strcpy_s(host, inet_ntoa(*(in_addr*)lphost->h_addr_list[0]));
@@ -148,7 +152,6 @@ int main()
 
    while (true)
    {
-      //ѕытаемс€ начать слушать сокет
       responce = listen(servSock, 10);
       if (responce == SOCKET_ERROR)
       {
@@ -158,7 +161,6 @@ int main()
          return SOCKET_ERROR;
       }
 
-      //∆дем клиента
       SOCKADDR_IN from;
       int fromlen = sizeof(from);
       auto clientSock = accept(servSock, (sockaddr*)&from, &fromlen);
@@ -174,7 +176,7 @@ int main()
 
       char content[SCHAR_MAX];
       responce = recv(clientSock, content, SCHAR_MAX, 0);
-      //ѕытаемс€ получить данные от клиента
+
       if (responce == SOCKET_ERROR)
       {
          cout << "Unable to recv" << endl;

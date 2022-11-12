@@ -8,56 +8,52 @@
 
 using namespace std;
 
-bool in = true;
-
 void client_send(LPVOID client_socket)
 {
-   auto socket = *(SOCKET*)client_socket;
-
-   string message;
-   getline(cin, message);
-   cin.clear();
-
-   char content[UCHAR_MAX];
-   strncpy_s(content, message.c_str(), sizeof(content) - 1);
-   auto responce = send(socket, content, UCHAR_MAX, 0);
-   if (string(content) == "exit")
+   while (true)
    {
-      in = false;
-      return;
-   }
-   if (responce == SOCKET_ERROR)
-   {
-      in = false;
+      auto socket = *static_cast<SOCKET*>(client_socket);
+
+      string message;
+      getline(cin, message);
+      cin.clear();
+
+      char content[UCHAR_MAX];
+      strncpy_s(content, message.c_str(), sizeof(content) - 1);
+      send(socket, content, UCHAR_MAX, 0);
+      if (string(content) == "exit")
+      {
+         exit(0);
+      }
    }
 }
 
 void client_receive(LPVOID client_socket)
 {
-   auto socket = *(SOCKET*)client_socket;
+   while (true)
+   {
+      auto socket = *static_cast<SOCKET*>(client_socket);
 
-   char content[UCHAR_MAX];
-   auto responce = recv(socket, content, UCHAR_MAX, 0);
-   if (string(content) == "Server shutdown")
-   {
-      cout << "Server shutdown" << endl;
-      in = false;
-      return;
-   }
-   if (string(content) == "Chat if full")
-   {
-      cout << "Chat if full" << endl;
-      in = false;
-      return;
-   }
-   if (responce == SOCKET_ERROR)
-   {
-      in = false;
-      return;
-   }
-   if (strlen(content) < UCHAR_MAX)
-   {
-      cout << content << endl;
+      char content[UCHAR_MAX];
+      auto responce = recv(socket, content, UCHAR_MAX, 0);
+      if (string(content) == "Server shutdown")
+      {
+         cout << "Server shutdown" << endl;
+         break;
+      }
+      if (string(content) == "Chat if full")
+      {
+         cout << "Chat if full" << endl;
+         break;
+      }
+      if (responce == SOCKET_ERROR)
+      {
+         continue;
+      }
+      if (strlen(content) < UCHAR_MAX)
+      {
+         cout << content << endl;
+      }
    }
 }
 
@@ -67,7 +63,6 @@ int main()
    WSADATA wsaData;
    WSAStartup(MAKEWORD(2, 2), &wsaData);
 
-   //Создаем сокет
    auto clientSock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
    if (clientSock == SOCKET_ERROR)
    {
@@ -85,8 +80,6 @@ int main()
    serverInfo.sin_family = AF_INET;
    serverInfo.sin_addr.S_un.S_addr = inet_addr(ip.c_str());
    serverInfo.sin_port = htons(2009);
-
-   //Пытаемся присоединится к серверу по ip и port
 
    auto responce = connect(clientSock, reinterpret_cast<LPSOCKADDR>(&serverInfo), sizeof(serverInfo));
    if (responce == SOCKET_ERROR)
@@ -113,11 +106,11 @@ int main()
 
    cout << "To leave the chat enter 'exit'" << endl;
 
-   while (in)
-   {
-      _beginthread(client_send, NULL, &clientSock);
-      _beginthread(client_receive, NULL, &clientSock);
-   }
+   auto s_thread = _beginthread(client_send, NULL, &clientSock);
+   auto r_thread = _beginthread(client_receive, NULL, &clientSock);
+
+   WaitForSingleObject(reinterpret_cast<HANDLE>(s_thread), INFINITE);
+   WaitForSingleObject(reinterpret_cast<HANDLE>(r_thread), INFINITE);
 
    closesocket(clientSock);
    system("pause");
