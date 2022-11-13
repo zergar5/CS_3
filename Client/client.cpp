@@ -48,7 +48,7 @@ void client_receive(LPVOID client_socket)
       }
       if (responce == SOCKET_ERROR)
       {
-         continue;
+         break;
       }
       if (strlen(content) < UCHAR_MAX)
       {
@@ -56,7 +56,6 @@ void client_receive(LPVOID client_socket)
       }
    }
 }
-
 
 int main()
 {
@@ -69,17 +68,22 @@ int main()
       cout << "Unable to create socket" << endl;
       WSACleanup();
       system("pause");
-      return 1;
+      return SOCKET_ERROR;
    }
    string ip;
    cout << "ip>";
    cin >> ip;
    cin.ignore();
 
+   u_short port_number = 0;
+   cout << "Enter port number: ";
+   cin >> port_number;
+   cin.ignore();
+
    SOCKADDR_IN serverInfo;
    serverInfo.sin_family = AF_INET;
    serverInfo.sin_addr.S_un.S_addr = inet_addr(ip.c_str());
-   serverInfo.sin_port = htons(2009);
+   serverInfo.sin_port = htons(port_number);
 
    auto responce = connect(clientSock, reinterpret_cast<LPSOCKADDR>(&serverInfo), sizeof(serverInfo));
    if (responce == SOCKET_ERROR)

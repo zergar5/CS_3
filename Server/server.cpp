@@ -124,7 +124,7 @@ int main()
    }
 
    u_short port_number = 0;
-   cout << "Enter port number" << endl;
+   cout << "Enter port number: ";
    cin >> port_number;
 
    SOCKADDR_IN sin;
@@ -184,7 +184,6 @@ int main()
          system("pause");
          return SOCKET_ERROR;
       }
-
 
       sockets.push_back(clientSock);
       string new_member;
