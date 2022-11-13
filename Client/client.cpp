@@ -82,7 +82,7 @@ int main()
 
    SOCKADDR_IN serverInfo;
    serverInfo.sin_family = AF_INET;
-   serverInfo.sin_addr.S_un.S_addr = inet_addr(ip.c_str());
+   serverInfo.sin_addr.s_addr = inet_addr(ip.c_str());
    serverInfo.sin_port = htons(port_number);
 
    auto responce = connect(clientSock, reinterpret_cast<LPSOCKADDR>(&serverInfo), sizeof(serverInfo));
